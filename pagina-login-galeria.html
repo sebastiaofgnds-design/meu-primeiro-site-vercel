@@ -3,1202 +3,776 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualização de Posts - Galeria</title>
+    <title>Galeria Leve&Lave - Login</title>
     
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- AWS SDK para Wasabi -->
-    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1416.0.min.js"></script>
+    <!-- Favicon -->
+    <link rel="icon" href="https://i.imgur.com/vPgNqLp.png" type="image/png">
+    <link rel="shortcut icon" href="https://i.imgur.com/vPgNqLp.png" type="image/png">
+    
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
     
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="https://i.imgur.com/vPgNqLp.png">
-    
     <style>
         :root {
-            --primary-color: #1b80dc;
-            --secondary-color: #2282db;
-            --success-color: #28a745;
-            --danger-color: #dc3545;
-            --background-color: #dde4ee;
-            --border-color: #dee2e6;
-            --text-color: #495057;
-            --sidebar-width: 250px;
+            --primary-blue: #1b80dc;
+            --secondary-blue: #2282db;
+            --background-gray: #dde4ee;
             --white: #ffffff;
+            --text-dark: #333333;
+            --border-light: rgba(27, 128, 220, 0.2);
+            --success-color: #28a745;
+            --error-color: #dc3545;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-        }
-        
-        .app-container {
-            display: flex;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
-        }
-        
-        /* Sidebar Styles */
-        .sidebar {
-            width: var(--sidebar-width);
-            background-color: #343a40;
-            color: white;
-            padding: 20px 0;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-            z-index: 1000;
-        }
-        
-        .sidebar-logo {
-            text-align: center;
-            padding: 0 20px 30px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 20px;
-        }
-        
-        .sidebar-logo img {
-            max-height: 50px;
-            margin-bottom: 10px;
-        }
-        
-        .sidebar-logo h2 {
-            font-size: 1.5rem;
-            margin: 0;
-            font-weight: 600;
-        }
-        
-        .sidebar-menu {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        
-        .sidebar-menu li {
-            margin-bottom: 5px;
-        }
-        
-        .sidebar-menu a {
-            display: block;
-            padding: 12px 20px;
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-        
-        .sidebar-menu a:hover,
-        .sidebar-menu a.active {
-            background-color: rgba(27, 128, 220, 0.2);
-            color: white;
-        }
-        
-        .sidebar-menu i {
-            margin-right: 10px;
-            width: 20px;
-            text-align: center;
-        }
-        
-        /* Main Content */
-        .main-content {
-            margin-left: var(--sidebar-width);
-            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             padding: 20px;
         }
         
-        .header {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .header h1 {
-            font-size: 1.75rem;
-            margin: 0;
-            color: #343a40;
-        }
-        
-        /* Filters */
-        .filters-section {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .filters-row {
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 900px;
+            min-height: 600px;
             display: flex;
-            gap: 15px;
-            align-items: end;
         }
         
-        .filter-group {
+        .left-panel {
+            background: linear-gradient(45deg, var(--primary-blue), var(--secondary-blue));
             flex: 1;
-        }
-        
-        .filter-group label {
-            font-weight: 500;
-            margin-bottom: 8px;
-            display: block;
-        }
-        
-        /* Posts Grid */
-        .posts-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
-        }
-        
-        .post-card {
-            background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(27, 128, 220, 0.1);
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            position: relative;
-            border: 1px solid rgba(27, 128, 220, 0.08);
-        }
-        
-        .post-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(27, 128, 220, 0.15);
-        }
-        
-        /* CORREÇÃO PRINCIPAL: Container de mídia com carrossel */
-        .post-media-container {
-            position: relative;
-            width: 100%;
-            height: 200px;
-            overflow: hidden;
-            background-color: #f8f9fa;
-        }
-        
-        .post-carousel {
-            position: relative;
-            width: 100%;
-            height: 100%;
-        }
-        
-        .post-carousel-track {
+            padding: 60px 40px;
             display: flex;
-            width: 100%;
-            height: 100%;
-            transition: transform 0.3s ease;
-        }
-        
-        .post-carousel-slide {
-            flex: 0 0 100%;
-            width: 100%;
-            height: 100%;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
             position: relative;
         }
         
-        .post-carousel-slide img,
-        .post-carousel-slide video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        /* Navegação do carrossel no card */
-        .post-carousel-nav {
+        .left-panel::before {
+            content: '';
             position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: rgba(255, 255, 255, 0.9);
-            color: var(--primary-color);
-            border: none;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            z-index: 5;
-            opacity: 0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-        
-        .post-card:hover .post-carousel-nav {
-            opacity: 1;
-        }
-        
-        .post-carousel-nav:hover {
-            background-color: white;
-            transform: translateY(-50%) scale(1.1);
-        }
-        
-        .post-carousel-prev {
-            left: 8px;
-        }
-        
-        .post-carousel-next {
-            right: 8px;
-        }
-        
-        /* Indicadores de slide no card */
-        .post-carousel-indicators {
-            position: absolute;
-            bottom: 8px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 4px;
-            z-index: 5;
-        }
-        
-        .post-carousel-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.6);
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        
-        .post-carousel-dot.active {
-            background-color: white;
-        }
-        
-        /* Miniaturas preview no card - IMPLEMENTAÇÃO PRINCIPAL */
-        .post-thumbnails-preview {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
-            padding: 8px;
-            display: flex;
-            gap: 4px;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: 6;
-        }
-        
-        .post-card:hover .post-thumbnails-preview {
-            opacity: 1;
-        }
-        
-        .post-thumbnail-mini {
-            width: 40px;
-            height: 30px;
-            object-fit: cover;
-            border-radius: 3px;
-            cursor: pointer;
-            opacity: 0.7;
-            transition: all 0.2s ease;
-            border: 1px solid transparent;
-        }
-        
-        .post-thumbnail-mini:hover {
-            opacity: 1;
-            transform: scale(1.1);
-        }
-        
-        .post-thumbnail-mini.active {
-            opacity: 1;
-            border-color: var(--primary-color);
-        }
-        
-        .post-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            background-color: #f8f9fa;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            cursor: pointer;
-        }
-        
-        .post-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .post-image.video {
-            background-color: #000;
-            color: white;
-            font-size: 3rem;
-        }
-        
-        .post-image.loading {
-            background-color: #f8f9fa;
-        }
-        
-        .post-image .loading-spinner {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 2rem;
-            height: 2rem;
-            border: 3px solid rgba(0, 0, 0, 0.1);
-            border-radius: 50%;
-            border-top-color: var(--primary-color);
-            animation: spin 1s ease-in-out infinite;
-        }
-        
-        .post-image .play-icon {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 60px;
-            height: 60px;
-            background-color: rgba(0, 0, 0, 0.6);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.5rem;
-            transition: all 0.3s ease;
-        }
-        
-        .post-image:hover .play-icon {
-            background-color: rgba(0, 0, 0, 0.8);
-            transform: translate(-50%, -50%) scale(1.1);
-        }
-        
-        /* Contador de imagens */
-        .post-image-count {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            z-index: 7;
-        }
-        
-        @keyframes spin {
-            to { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-        
-        .post-content {
-            padding: 16px;
-        }
-        
-        .post-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #343a40;
-            line-height: 1.3;
-        }
-        
-        .post-description {
-            color: #6c757d;
-            margin-bottom: 12px;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            line-height: 1.4;
-        }
-        
-        .post-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.85rem;
-            color: #6c757d;
-            margin-bottom: 12px;
-        }
-        
-        .post-pasta {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-        }
-        
-        .post-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .post-actions button {
-            flex: 1;
-            padding: 10px;
-            border-radius: 6px;
-            border: none;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-        }
-        
-        .btn-view {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .btn-view:hover {
-            background-color: #1666b8;
-            transform: translateY(-1px);
-        }
-        
-        .btn-download {
-            background-color: #6c757d;
-            color: white;
-        }
-        
-        .btn-download:hover {
-            background-color: #5a6268;
-            transform: translateY(-1px);
-        }
-        
-        /* Post Detail Modal */
-        .post-detail-modal {
-            display: none;
-            position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        
-        .post-detail-modal.active {
-            display: flex;
-        }
-        
-        .post-detail-container {
-            background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
-            max-width: 1200px;
-            width: 100%;
-            max-height: 95vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .post-detail-header {
-            padding: 20px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .post-detail-title {
-            font-size: 1.8rem;
-            font-weight: 600;
-            margin: 0;
-            color: #343a40;
-        }
-        
-        .post-detail-close {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #6c757d;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
-        
-        .post-detail-close:hover {
-            background-color: #f8f9fa;
-            color: #343a40;
-        }
-        
-        .post-detail-content {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
-        
-        .post-detail-media {
-            flex: 2;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #f8f9fa;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .post-detail-media img,
-        .post-detail-media video {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            cursor: pointer;
-        }
-        
-        .post-detail-info {
-            flex: 1;
-            padding: 30px;
-            border-left: 1px solid #eee;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .post-detail-description-label {
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: #343a40;
-            font-size: 1.1rem;
-        }
-        
-        .post-detail-description {
-            margin-bottom: 25px;
-            color: #495057;
-            line-height: 1.6;
-            font-size: 1rem;
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #e9ecef;
-            min-height: 120px;
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-        
-        .post-detail-meta {
-            margin-bottom: 25px;
-        }
-        
-        .post-detail-meta-item {
-            display: flex;
-            margin-bottom: 15px;
-            align-items: flex-start;
-        }
-        
-        .post-detail-meta-label {
-            font-weight: 600;
-            width: 80px;
-            color: #6c757d;
-            flex-shrink: 0;
-        }
-        
-        .post-detail-meta-value {
-            flex: 1;
-        }
-        
-        .post-detail-pastas {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        
-        .post-detail-pasta {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-        }
-        
-        .post-detail-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        
-        .post-detail-tag {
-            background-color: #e9ecef;
-            color: #495057;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-        }
-        
-        .post-detail-actions {
-            display: flex;
-            gap: 15px;
-            margin-top: auto;
-            padding-top: 20px;
-        }
-        
-        .post-detail-actions button {
-            flex: 1;
-            padding: 12px;
-            border-radius: 6px;
-            border: none;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-size: 1rem;
-        }
-        
-        .btn-detail-download {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .btn-detail-download:hover {
-            background-color: #1666b8;
-        }
-        
-        .btn-detail-copy {
-            background-color: #6c757d;
-            color: white;
-        }
-        
-        .btn-detail-copy:hover {
-            background-color: #5a6268;
-        }
-        
-        /* Navegação no modal de detalhes - CORREÇÃO CRÍTICA */
-        .post-detail-nav {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: rgba(255, 255, 255, 0.95);
-            color: var(--primary-color);
-            border: none;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            display: flex !important; /* FORÇAR EXIBIÇÃO */
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 1.5rem;
-            transition: all 0.3s ease;
-            z-index: 25; /* MAIOR Z-INDEX */
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            border: 2px solid rgba(27, 128, 220, 0.2);
-        }
-        
-        .post-detail-nav:hover {
-            background-color: white;
-            transform: translateY(-50%) scale(1.1);
-            color: var(--primary-color);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-            border-color: var(--primary-color);
-        }
-        
-        .post-detail-nav:active {
-            transform: translateY(-50%) scale(0.95);
-        }
-        
-        .post-detail-prev {
-            left: 20px;
-        }
-        
-        .post-detail-next {
-            right: 20px;
-        }
-        
-        /* Miniaturas no modal de detalhes - SEMPRE VISÍVEIS */
-        .post-detail-thumbnails {
-            position: absolute;
-            bottom: 0;
-            left: 0;
             right: 0;
-            display: flex !important; /* FORÇAR EXIBIÇÃO */
-            justify-content: center;
-            gap: 12px;
-            overflow-x: auto;
-            padding: 20px 80px;
-            z-index: 20;
-            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.4), transparent);
-            border-bottom-left-radius: 12px;
-            border-bottom-right-radius: 12px;
-            min-height: 120px;
-            align-items: center;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="3" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="80" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
+            opacity: 0.3;
         }
         
-        .post-detail-thumbnail {
+        .logo-section {
+            text-align: center;
+            z-index: 1;
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+        }
+        
+        .logo img {
             width: 80px;
             height: 80px;
-            object-fit: cover;
-            border-radius: 8px;
-            cursor: pointer;
-            opacity: 0.7;
-            transition: all 0.3s ease;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-            flex-shrink: 0;
+            object-fit: contain;
         }
         
-        .post-detail-thumbnail:hover {
-            opacity: 1;
-            transform: scale(1.1);
-            border-color: rgba(255, 255, 255, 0.8);
+        .brand-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
         }
         
-        .post-detail-thumbnail.active {
-            opacity: 1;
-            border-color: var(--primary-color);
-            transform: scale(1.15);
-            box-shadow: 0 6px 16px rgba(27, 128, 220, 0.6);
+        .brand-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 40px;
         }
         
-        .post-detail-loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 3rem;
-            height: 3rem;
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-radius: 50%;
-            border-top-color: var(--primary-color);
-            animation: spin 1s ease-in-out infinite;
+        .features {
+            list-style: none;
         }
         
-        /* Loading Spinner */
-        .loading-container {
+        .features li {
             display: flex;
-            justify-content: center;
             align-items: center;
-            height: 200px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .features li::before {
+            content: '✓';
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-weight: bold;
+        }
+        
+        .right-panel {
+            flex: 1;
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .login-title {
+            font-size: 32px;
+            color: var(--text-dark);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .login-subtitle {
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            color: #555;
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #fafbfc;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(27, 128, 220, 0.1);
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .checkbox-group input {
+            width: auto;
+            margin-right: 10px;
+        }
+        
+        .checkbox-group label {
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, var(--primary-blue), var(--secondary-blue));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .login-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(27, 128, 220, 0.3);
+        }
+        
+        .login-btn:active {
+            transform: translateY(0);
+        }
+        
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .footer-text {
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+        
+        .message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+        
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            color: #666;
+            margin-top: 10px;
         }
         
         .spinner {
-            width: 3rem;
-            height: 3rem;
-            border: 4px solid rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
-            border-top-color: var(--primary-color);
+            border-top-color: white;
             animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
         }
         
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #6c757d;
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
         
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            color: #dee2e6;
+        .countdown {
+            font-weight: bold;
+            font-size: 18px;
         }
         
-        .empty-state h3 {
-            font-size: 1.25rem;
-            margin-bottom: 10px;
-        }
-        
-        /* Toast Notification */
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1050;
-        }
-        
-        .toast {
-            background-color: white;
+        .admin-register {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(27, 128, 220, 0.05);
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            padding: 15px 20px;
+            border: 1px solid var(--border-light);
+            display: none;
+        }
+        
+        .admin-register h4 {
+            color: var(--primary-blue);
             margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            min-width: 300px;
-            animation: slideIn 0.3s ease forwards;
+            font-size: 14px;
         }
         
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+        .admin-register p {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
         }
         
-        .toast-success {
-            border-left: 4px solid var(--success-color);
-        }
-        
-        .toast-error {
-            border-left: 4px solid var(--danger-color);
-        }
-        
-        .toast-icon {
-            margin-right: 10px;
-            font-size: 1.2rem;
-        }
-        
-        .toast-success .toast-icon {
-            color: var(--success-color);
-        }
-        
-        .toast-error .toast-icon {
-            color: var(--danger-color);
-        }
-        
-        .toast-message {
-            flex: 1;
-        }
-        
-        .toast-close {
-            background: none;
+        .register-btn {
+            background: var(--primary-blue);
+            color: white;
             border: none;
-            font-size: 1.2rem;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
             cursor: pointer;
-            color: #6c757d;
-        }
-        
-        /* Responsive */
-        @media (max-width: 992px) {
-            .post-detail-content {
-                flex-direction: column;
-            }
-            
-            .post-detail-info {
-                width: 100%;
-                border-left: none;
-                border-top: 1px solid #eee;
-            }
-            
-            .post-detail-thumbnails {
-                padding: 15px 20px;
-            }
         }
         
         @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-            }
-            
-            .sidebar.active {
-                transform: translateX(0);
-            }
-            
-            .main-content {
-                margin-left: 0;
-            }
-            
-            .filters-row {
+            .login-container {
                 flex-direction: column;
-                gap: 10px;
+                max-width: 400px;
             }
             
-            .posts-container {
-                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            .left-panel {
+                padding: 40px 30px;
             }
             
-            .post-detail-thumbnail {
-                width: 60px;
-                height: 60px;
-            }
-            
-            .post-detail-nav {
-                width: 40px;
-                height: 40px;
-                font-size: 1.2rem;
-            }
-            
-            .post-carousel-nav {
-                width: 28px;
-                height: 28px;
-                font-size: 0.8rem;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .posts-container {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-            
-            .post-thumbnails-preview {
-                padding: 6px;
-                gap: 3px;
-            }
-            
-            .post-thumbnail-mini {
-                width: 30px;
-                height: 22px;
+            .right-panel {
+                padding: 40px 30px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-logo">
-                <img src="https://i.imgur.com/vPgNqLp.png" alt="Logo">
-                <h2>Galeria de Posts</h2>
+    <div class="login-container">
+        <div class="left-panel">
+            <div class="logo-section">
+                <div class="logo">
+                    <img src="https://i.imgur.com/vPgNqLp.png" alt="Logo Leve&Lave">
+                </div>
+                <h1 class="brand-title">Leve&Lave</h1>
+                <p class="brand-subtitle">Módulo de Marketing</p>
+                
+                <ul class="features">
+                    <li>Materiais Sempre Atualizados</li>
+                    <li>Campanhas Sazonais Exclusivas</li>
+                    <li>Download Rápido e Organizado</li>
+                </ul>
             </div>
-            <ul class="sidebar-menu">
-                <li><a href="#" class="active"><i class="fas fa-photo-video"></i> Visualizar Posts</a></li>
-                <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Sair</a></li>
-            </ul>
-        </aside>
+        </div>
         
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Header -->
-            <div class="header">
-                <h1>Visualização de Posts</h1>
-            </div>
+        <div class="right-panel">
+            <h2 class="login-title">Acesso ao Sistema</h2>
+            <p class="login-subtitle">Digite suas credenciais para continuar</p>
             
-            <!-- Filters Section -->
-            <div class="filters-section">
-                <div class="filters-row">
-                    <div class="filter-group">
-                        <label for="filter-pasta">Filtrar por Pasta</label>
-                        <select id="filter-pasta" class="form-select">
-                            <option value="">Todas as pastas</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="filter-tipo">Filtrar por Tipo</label>
-                        <select id="filter-tipo" class="form-select">
-                            <option value="">Todos os tipos</option>
-                            <option value="imagem">Imagens</option>
-                            <option value="video">Vídeos</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="search">Buscar</label>
-                        <input type="text" id="search" class="form-control" placeholder="Buscar por título ou descrição">
-                    </div>
-                    <div class="filter-group">
-                        <button class="btn btn-primary" id="btn-filter">
-                            <i class="fas fa-filter"></i> Filtrar
-                        </button>
-                    </div>
-                </div>
-            </div>
+            <div class="error-message message" id="errorMessage"></div>
+            <div class="success-message message" id="successMessage"></div>
             
-            <!-- Posts Container -->
-            <div id="posts-container" class="posts-container">
-                <!-- Loading Spinner -->
-                <div class="loading-container">
-                    <div class="spinner"></div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">E-mail *</label>
+                    <input type="email" id="email" name="email" placeholder="seu@email.com" required>
                 </div>
-            </div>
-        </main>
-    </div>
-    
-    <!-- Post Detail Modal -->
-    <div class="post-detail-modal" id="post-detail-modal">
-        <div class="post-detail-container">
-            <div class="post-detail-header">
-                <h2 class="post-detail-title" id="post-detail-title"></h2>
-                <button class="post-detail-close" id="post-detail-close">
-                    <i class="fas fa-times"></i>
+                <div class="form-group">
+                    <label for="password">Senha *</label>
+                    <input type="password" id="password" name="password" placeholder="Sua senha" required>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="remember" name="remember">
+                    <label for="remember">Manter conectado</label>
+                </div>
+                <button type="submit" class="login-btn" id="loginBtn">
+                    <span id="loginBtnText">Entrar no sistema</span>
                 </button>
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    Verificando credenciais...
+                </div>
+            </form>
+            
+            <!-- Painel para Admin cadastrar novos usuários -->
+            <div class="admin-register" id="adminRegister">
+                <h4>🔑 Painel Administrativo</h4>
+                <p>Você está logado como administrador. Clique para cadastrar novos usuários.</p>
+                <button class="register-btn" onclick="showRegisterModal()">Cadastrar Usuário</button>
             </div>
-            <div class="post-detail-content">
-                <div class="post-detail-media" id="post-detail-media">
-                    <div class="post-detail-loading" id="post-detail-loading" style="display: none;"></div>
-                    <button class="post-detail-nav post-detail-prev" id="post-detail-prev">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <button class="post-detail-nav post-detail-next" id="post-detail-next">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                    <div class="post-detail-thumbnails" id="post-detail-thumbnails"></div>
-                </div>
-                <div class="post-detail-info">
-                    <div class="post-detail-description-label">Descrição:</div>
-                    <div class="post-detail-description" id="post-detail-description"></div>
-                    
-                    <div class="post-detail-meta">
-                        <div class="post-detail-meta-item">
-                            <div class="post-detail-meta-label">Pastas:</div>
-                            <div class="post-detail-meta-value">
-                                <div class="post-detail-pastas" id="post-detail-pastas"></div>
-                            </div>
-                        </div>
-                        <div class="post-detail-meta-item">
-                            <div class="post-detail-meta-label">Tipo:</div>
-                            <div class="post-detail-meta-value" id="post-detail-tipo"></div>
-                        </div>
-                        <div class="post-detail-meta-item">
-                            <div class="post-detail-meta-label">Data:</div>
-                            <div class="post-detail-meta-value" id="post-detail-date"></div>
-                        </div>
-                        <div class="post-detail-meta-item">
-                            <div class="post-detail-meta-label">Tags:</div>
-                            <div class="post-detail-meta-value">
-                                <div class="post-detail-tags" id="post-detail-tags"></div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="post-detail-actions">
-                        <button class="btn-detail-download" id="btn-detail-download">
-                            <i class="fas fa-download"></i> Download
-                        </button>
-                        <button class="btn-detail-copy" id="btn-detail-copy">
-                            <i class="fas fa-copy"></i> Copiar Descrição
-                        </button>
-                    </div>
-                </div>
+            
+            <div class="footer-text">
+                © 2025 Leve&Lave - Todos os direitos reservados
             </div>
         </div>
     </div>
-    
-    <!-- Toast Container -->
-    <div class="toast-container" id="toast-container"></div>
-    
+
+    <!-- Modal de Cadastro (só aparece para Admin) -->
+    <div id="registerModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 30px; border-radius: 12px; max-width: 400px; width: 90%;">
+            <h3 style="margin-bottom: 20px; color: var(--primary-blue);">Cadastrar Novo Usuário</h3>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="regNome">Nome Completo *</label>
+                    <input type="text" id="regNome" required>
+                </div>
+                <div class="form-group">
+                    <label for="regEmail">E-mail *</label>
+                    <input type="email" id="regEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="regSenha">Senha *</label>
+                    <input type="password" id="regSenha" required>
+                </div>
+                <div class="form-group">
+                    <label for="regTipo">Tipo de Usuário *</label>
+                    <select id="regTipo" style="width: 100%; padding: 10px; border: 2px solid #e1e5e9; border-radius: 8px;">
+                        <option value="franqueado">Franqueado</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="button" onclick="hideRegisterModal()" style="flex: 1; padding: 10px; background: #ccc; border: none; border-radius: 6px;">Cancelar</button>
+                    <button type="submit" style="flex: 1; padding: 10px; background: var(--primary-blue); color: white; border: none; border-radius: 6px;">Cadastrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
-        // Configuração AWS SDK para Wasabi
-        AWS.config.update({
-            endpoint: 'https://s3.wasabisys.com',
-            accessKeyId: 'CI3F9HBPO1NQ736KFXXP',
-            secretAccessKey: 'URFb8Ia2S1XeZVgorzXakpTkXl6MJMjeD9JcRBBl',
-            region: 'us-east-1'
-        });
-
-        const s3 = new AWS.S3({
-            apiVersion: '2006-03-01',
-            params: { Bucket: 'levelave' }
-        });
-
         // Configuração Supabase
         const supabaseUrl = 'https://gygemdhuzltjhsbqvjld.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z2VtZGh1emx0amhzYnF2amxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMzM3NTQsImV4cCI6MjA3MTgwOTc1NH0.wMKzMBc1erkJlAzMxiauGYM4mRueU_C4fYYgbxGtw30';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-        
-        // Variáveis globais
-        let posts = [];
-        let pastas = [];
-        let postsPastas = [];
-        let currentPostDetail = null;
-        let currentPostDetailImageIndex = 0;
-        let signedUrlsCache = new Map();
+
+        // Estado da aplicação
         let currentUser = null;
-        
+
         // Elementos do DOM
-        const postsContainer = document.getElementById('posts-container');
-        const filterPasta = document.getElementById('filter-pasta');
-        const filterTipo = document.getElementById('filter-tipo');
-        const searchInput = document.getElementById('search');
-        const btnFilter = document.getElementById('btn-filter');
-        const logoutBtn = document.getElementById('logout-btn');
-        
-        // Post Detail Modal
-        const postDetailModal = document.getElementById('post-detail-modal');
-        const postDetailClose = document.getElementById('post-detail-close');
-        const postDetailTitle = document.getElementById('post-detail-title');
-        const postDetailMedia = document.getElementById('post-detail-media');
-        const postDetailLoading = document.getElementById('post-detail-loading');
-        const postDetailDescription = document.getElementById('post-detail-description');
-        const postDetailPastas = document.getElementById('post-detail-pastas');
-        const postDetailTipo = document.getElementById('post-detail-tipo');
-        const postDetailDate = document.getElementById('post-detail-date');
-        const postDetailTags = document.getElementById('post-detail-tags');
-        const postDetailPrev = document.getElementById('post-detail-prev');
-        const postDetailNext = document.getElementById('post-detail-next');
-        const postDetailThumbnails = document.getElementById('post-detail-thumbnails');
-        const btnDetailDownload = document.getElementById('btn-detail-download');
-        const btnDetailCopy = document.getElementById('btn-detail-copy');
-        
-        const toastContainer = document.getElementById('toast-container');
-        
-        // VERIFICAÇÃO DE AUTENTICAÇÃO
-        async function verificarAutenticacao() {
+        const loginForm = document.getElementById('loginForm');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginBtnText = document.getElementById('loginBtnText');
+        const loading = document.getElementById('loading');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const adminRegister = document.getElementById('adminRegister');
+
+        // Função para mostrar mensagens
+        function showMessage(element, message, duration = 5000) {
+            element.textContent = message;
+            element.style.display = 'block';
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, duration);
+        }
+
+        // Função para obter informações do dispositivo/browser
+        function getDeviceInfo() {
+            return {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language,
+                screen: {
+                    width: screen.width,
+                    height: screen.height
+                },
+                viewport: {
+                    width: window.innerWidth,
+                    height: window.innerHeight
+                }
+            };
+        }
+
+        // Função para obter IP (simulação - em produção usar serviço real)
+        async function getClientIP() {
             try {
-                const sessionToken = window.sessionStorage.getItem('session_token');
-                
-                if (!sessionToken) {
-                    // Se não há token, redirecionar para login
-                    redirecionarParaLogin();
-                    return false;
-                }
-                
-                // Verificar se a sessão ainda é válida no banco de dados
-                const { data: sessionData, error } = await supabase
-                    .from('sessoes_usuarios')
-                    .select(`
-                        *,
-                        perfis_usuarios (
-                            id, nome, email, tipo_usuario, ativo
-                        )
-                    `)
-                    .eq('session_token', sessionToken)
-                    .eq('is_active', true)
-                    .gte('expires_at', new Date().toISOString())
-                    .single();
-                
-                if (error || !sessionData) {
-                    // Sessão inválida ou expirada
-                    window.sessionStorage.removeItem('session_token');
-                    redirecionarParaLogin();
-                    return false;
-                }
-                
-                // Sessão válida - definir usuário atual
-                currentUser = {
-                    id: sessionData.perfis_usuarios.id,
-                    nome: sessionData.perfis_usuarios.nome,
-                    email: sessionData.perfis_usuarios.email,
-                    tipo_usuario: sessionData.perfis_usuarios.tipo_usuario,
-                    session_token: sessionToken
-                };
-                
-                // Atualizar última atividade da sessão
-                await supabase
-                    .from('sessoes_usuarios')
-                    .update({ last_activity: new Date().toISOString() })
-                    .eq('id', sessionData.id);
-                
-                return true;
-                
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return data.ip;
             } catch (error) {
-                console.error('Erro na verificação de autenticação:', error);
-                redirecionarParaLogin();
-                return false;
+                console.warn('Não foi possível obter IP:', error);
+                return '0.0.0.0';
             }
         }
-        
-        // Função para redirecionar para login
-        function redirecionarParaLogin() {
-            window.location.href = 'https://n8n.welar.com.br/webhook/galeria-login';
+
+        // Função para gerar token de sessão
+        function generateSessionToken() {
+            return 'sess_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
         }
-        
-        // Função de logout
-        async function logout() {
+
+        // Função para criar sessão do usuário
+        async function createUserSession(userId, rememberMe = false) {
+            try {
+                const sessionToken = generateSessionToken();
+                const expirationHours = rememberMe ? 24 * 30 : 24; // 30 dias ou 1 dia
+                const expiresAt = new Date(Date.now() + (expirationHours * 60 * 60 * 1000));
+                const clientIP = await getClientIP();
+                const deviceInfo = getDeviceInfo();
+
+                const { data, error } = await supabase
+                    .from('sessoes_usuarios')
+                    .insert([
+                        {
+                            usuario_id: userId,
+                            session_token: sessionToken,
+                            expires_at: expiresAt.toISOString(),
+                            ip_address: clientIP,
+                            user_agent: deviceInfo.userAgent,
+                            device_info: deviceInfo,
+                            is_active: true
+                        }
+                    ])
+                    .select()
+                    .single();
+
+                if (error) throw error;
+
+                // Armazenar token na memória (não localStorage para segurança)
+                window.sessionStorage.setItem('session_token', sessionToken);
+                
+                return { sessionToken, sessionData: data };
+            } catch (error) {
+                console.error('Erro ao criar sessão:', error);
+                throw error;
+            }
+        }
+
+        // Função para realizar login
+        async function performLogin(email, password, rememberMe = false) {
+            try {
+                // 1. Verificar se o usuário existe na nossa tabela perfis_usuarios
+                const { data: userProfile, error: profileError } = await supabase
+                    .from('perfis_usuarios')
+                    .select('id, nome, email, tipo_usuario, ativo, senha_hash')
+                    .eq('email', email)
+                    .eq('ativo', true)
+                    .single();
+
+                if (profileError || !userProfile) {
+                    throw new Error('Usuário não encontrado ou inativo');
+                }
+
+                // 2. Tentar fazer login com Supabase Auth
+                const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (authError) {
+                    throw new Error('Email ou senha incorretos');
+                }
+
+                // 3. Criar sessão personalizada
+                const { sessionToken } = await createUserSession(userProfile.id, rememberMe);
+
+                // 4. Atualizar última atividade
+                await supabase
+                    .from('perfis_usuarios')
+                    .update({ updated_at: new Date().toISOString() })
+                    .eq('id', userProfile.id);
+
+                // 5. Registrar evento de login
+                await supabase
+                    .from('analytics_events')
+                    .insert([
+                        {
+                            evento_tipo: 'login',
+                            usuario_id: userProfile.id,
+                            ip_address: await getClientIP(),
+                            user_agent: navigator.userAgent,
+                            dados_evento: {
+                                remember_me: rememberMe,
+                                login_timestamp: new Date().toISOString(),
+                                user_type: userProfile.tipo_usuario
+                            }
+                        }
+                    ]);
+
+                // 6. Definir usuário atual
+                currentUser = {
+                    id: userProfile.id,
+                    nome: userProfile.nome,
+                    email: userProfile.email,
+                    tipo_usuario: userProfile.tipo_usuario,
+                    session_token: sessionToken,
+                    supabase_user: authData.user
+                };
+
+                return currentUser;
+
+            } catch (error) {
+                console.error('Erro no login:', error);
+                throw error;
+            }
+        }
+
+        // Função para cadastrar novo usuário (só admin pode fazer)
+        async function registerNewUser(userData) {
+            try {
+                // 1. Verificar se o usuário atual é admin
+                if (!currentUser || currentUser.tipo_usuario !== 'admin') {
+                    throw new Error('Apenas administradores podem cadastrar novos usuários');
+                }
+
+                // 2. Criar usuário no Supabase Auth
+                const { data: authData, error: authError } = await supabase.auth.signUp({
+                    email: userData.email,
+                    password: userData.senha,
+                    options: {
+                        data: {
+                            full_name: userData.nome,
+                            user_type: userData.tipo_usuario
+                        }
+                    }
+                });
+
+                if (authError) {
+                    throw new Error(`Erro ao criar conta: ${authError.message}`);
+                }
+
+                // 3. Criar perfil na nossa tabela
+                const { data: profileData, error: profileError } = await supabase
+                    .from('perfis_usuarios')
+                    .insert([
+                        {
+                            nome: userData.nome,
+                            email: userData.email,
+                            tipo_usuario: userData.tipo_usuario,
+                            ativo: true
+                        }
+                    ])
+                    .select()
+                    .single();
+
+                if (profileError) {
+                    throw new Error(`Erro ao criar perfil: ${profileError.message}`);
+                }
+
+                // 4. Registrar evento de criação de usuário
+                await supabase
+                    .from('analytics_events')
+                    .insert([
+                        {
+                            evento_tipo: 'user_created',
+                            usuario_id: currentUser.id,
+                            ip_address: await getClientIP(),
+                            user_agent: navigator.userAgent,
+                            dados_evento: {
+                                new_user_id: profileData.id,
+                                new_user_email: userData.email,
+                                new_user_type: userData.tipo_usuario,
+                                created_by: currentUser.id
+                            }
+                        }
+                    ]);
+
+                return profileData;
+
+            } catch (error) {
+                console.error('Erro ao cadastrar usuário:', error);
+                throw error;
+            }
+        }
+
+        // Event Listeners
+        loginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('remember').checked;
+
+            // UI Loading state
+            loginBtn.disabled = true;
+            loginBtnText.innerHTML = '<div class="spinner"></div>Entrando...';
+            loading.style.display = 'block';
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+
+            try {
+                // Realizar login
+                const user = await performLogin(email, password, rememberMe);
+                
+                // Sucesso - mostrar mensagem e redirecionar
+                loading.style.display = 'none';
+                showMessage(successMessage, `Bem-vindo, ${user.nome}! Redirecionando...`, 3000);
+                
+                // Mostrar painel admin se for admin
+                if (user.tipo_usuario === 'admin') {
+                    adminRegister.style.display = 'block';
+                }
+
+                // Redirecionar após 2 segundos para a URL correta
+                setTimeout(() => {
+                    window.location.href = 'https://n8n.welar.com.br/webhook/galeria-home';
+                }, 2000);
+
+            } catch (error) {
+                loading.style.display = 'none';
+                showMessage(errorMessage, error.message);
+            } finally {
+                // Restaurar botão
+                loginBtn.disabled = false;
+                loginBtnText.textContent = 'Entrar no sistema';
+            }
+        });
+
+        // Funções para Modal de Cadastro
+        function showRegisterModal() {
+            document.getElementById('registerModal').style.display = 'flex';
+        }
+
+        function hideRegisterModal() {
+            document.getElementById('registerModal').style.display = 'none';
+            document.getElementById('registerForm').reset();
+        }
+
+        // Event listener para o formulário de cadastro
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const userData = {
+                nome: document.getElementById('regNome').value.trim(),
+                email: document.getElementById('regEmail').value.trim(),
+                senha: document.getElementById('regSenha').value,
+                tipo_usuario: document.getElementById('regTipo').value
+            };
+
+            try {
+                await registerNewUser(userData);
+                hideRegisterModal();
+                showMessage(successMessage, `Usuário ${userData.nome} cadastrado com sucesso!`);
+            } catch (error) {
+                showMessage(errorMessage, error.message);
+            }
+        });
+
+        // Verificar se já existe uma sessão ativa
+        window.addEventListener('load', async function() {
+            const sessionToken = window.sessionStorage.getItem('session_token');
+            
+            if (sessionToken) {
+                try {
+                    // Verificar se a sessão ainda é válida
+                    const { data: sessionData, error } = await supabase
+                        .from('sessoes_usuarios')
+                        .select(`
+                            *,
+                            perfis_usuarios (
+                                id, nome, email, tipo_usuario, ativo
+                            )
+                        `)
+                        .eq('session_token', sessionToken)
+                        .eq('is_active', true)
+                        .gte('expires_at', new Date().toISOString())
+                        .single();
+
+                    if (!error && sessionData) {
+                        // Sessão válida - definir usuário atual e redirecionar
+                        currentUser = {
+                            id: sessionData.perfis_usuarios.id,
+                            nome: sessionData.perfis_usuarios.nome,
+                            email: sessionData.perfis_usuarios.email,
+                            tipo_usuario: sessionData.perfis_usuarios.tipo_usuario,
+                            session_token: sessionToken
+                        };
+
+                        // Redirecionar para a URL correta
+                        window.location.href = 'https://n8n.welar.com.br/webhook/galeria-home';
+                    }
+                } catch (error) {
+                    console.warn('Sessão inválida, permanecendo na tela de login');
+                    window.sessionStorage.removeItem('session_token');
+                }
+            }
+        });
+
+        // Função para logout (para ser chamada de outras páginas)
+        window.logout = async function() {
             try {
                 const sessionToken = window.sessionStorage.getItem('session_token');
                 
@@ -1209,7 +783,7 @@
                         .update({ is_active: false })
                         .eq('session_token', sessionToken);
                 }
-                
+
                 // Logout do Supabase Auth
                 await supabase.auth.signOut();
                 
@@ -1218,1072 +792,27 @@
                 currentUser = null;
                 
                 // Redirecionar para login
-                redirecionarParaLogin();
+                window.location.href = '/login';
                 
             } catch (error) {
                 console.error('Erro no logout:', error);
-                // Forçar redirecionamento mesmo com erro
-                redirecionarParaLogin();
             }
-        }
-        
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Verificar autenticação antes de carregar qualquer coisa
-            const isAuthenticated = await verificarAutenticacao();
+        };
+
+        // Expor funções globalmente para debug (remover em produção)
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            window.debug = {
+                currentUser: () => currentUser,
+                createTestUser: () => registerNewUser({
+                    nome: 'Teste Usuario',
+                    email: 'teste@levelave.com',
+                    senha: 'teste123',
+                    tipo_usuario: 'franqueado'
+                }),
+                supabase: supabase
+            };
             
-            if (!isAuthenticated) {
-                return; // A função de verificação já redirecionou para login
-            }
-            
-            setupEventListeners();
-            await carregarPastas();
-            await carregarPosts();
-        });
-        
-        // Configurar listeners de eventos
-        function setupEventListeners() {
-            // Filtros
-            btnFilter.addEventListener('click', filtrarPosts);
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') filtrarPosts();
-            });
-            
-            // Logout
-            logoutBtn.addEventListener('click', logout);
-            
-            // Post Detail Modal
-            postDetailClose.addEventListener('click', () => {
-                postDetailModal.classList.remove('active');
-            });
-            
-            postDetailModal.addEventListener('click', (e) => {
-                if (e.target === postDetailModal) {
-                    postDetailModal.classList.remove('active');
-                }
-            });
-            
-            // Navegação no modal de detalhes
-            postDetailPrev.addEventListener('click', () => {
-                if (currentPostDetail && currentPostDetail.arquivos && currentPostDetail.arquivos.length > 1) {
-                    if (currentPostDetailImageIndex > 0) {
-                        currentPostDetailImageIndex--;
-                        updatePostDetailImage();
-                    }
-                }
-            });
-            
-            postDetailNext.addEventListener('click', () => {
-                if (currentPostDetail && currentPostDetail.arquivos && currentPostDetail.arquivos.length > 1) {
-                    if (currentPostDetailImageIndex < currentPostDetail.arquivos.length - 1) {
-                        currentPostDetailImageIndex++;
-                        updatePostDetailImage();
-                    }
-                }
-            });
-            
-            // Botões do modal
-            btnDetailDownload.addEventListener('click', async () => {
-                if (currentPostDetail && currentPostDetail.arquivos && currentPostDetail.arquivos.length > 0) {
-                    if (currentPostDetail.eh_carrossel && currentPostDetail.arquivos.length > 1) {
-                        await baixarTodosArquivos(currentPostDetail.arquivos);
-                    } else {
-                        await baixarArquivo(currentPostDetail.arquivos[0].arquivo_nome);
-                    }
-                }
-            });
-            
-            btnDetailCopy.addEventListener('click', () => {
-                const descricao = postDetailDescription.textContent;
-                navigator.clipboard.writeText(descricao)
-                    .then(() => showToast('Descrição copiada para a área de transferência!', 'success'))
-                    .catch(() => showToast('Não foi possível copiar a descrição.', 'error'));
-            });
-        }
-        
-        // Carregar pastas do Supabase
-        async function carregarPastas() {
-            try {
-                const response = await fetch(`${supabaseUrl}/rest/v1/pastas?order=ordem`, {
-                    method: 'GET',
-                    headers: {
-                        'apikey': supabaseKey,
-                        'Authorization': `Bearer ${supabaseKey}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`Erro ao carregar pastas: ${response.status}`);
-                }
-                
-                pastas = await response.json();
-                
-                // Preencher select de pastas
-                filterPasta.innerHTML = '<option value="">Todas as pastas</option>';
-                pastas.forEach(pasta => {
-                    const option = document.createElement('option');
-                    option.value = pasta.id;
-                    option.textContent = pasta.nome;
-                    filterPasta.appendChild(option);
-                });
-                
-            } catch (error) {
-                console.error('Erro ao carregar pastas:', error);
-                showToast('Erro ao carregar pastas. Tente novamente.', 'error');
-            }
-        }
-        
-        // Carregar posts do Supabase
-        async function carregarPosts() {
-            try {
-                postsContainer.innerHTML = `
-                    <div class="loading-container">
-                        <div class="spinner"></div>
-                    </div>
-                `;
-                
-                const responsePosts = await fetch(`${supabaseUrl}/rest/v1/posts?select=*&order=created_at.desc`, {
-                    method: 'GET',
-                    headers: {
-                        'apikey': supabaseKey,
-                        'Authorization': `Bearer ${supabaseKey}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!responsePosts.ok) {
-                    throw new Error(`Erro ao carregar posts: ${responsePosts.status}`);
-                }
-                
-                posts = await responsePosts.json();
-                
-                // Carregar relacionamento posts_pastas
-                const responsePostsPastas = await fetch(`${supabaseUrl}/rest/v1/posts_pastas`, {
-                    method: 'GET',
-                    headers: {
-                        'apikey': supabaseKey,
-                        'Authorization': `Bearer ${supabaseKey}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (responsePostsPastas.ok) {
-                    postsPastas = await responsePostsPastas.json();
-                    
-                    // Associar pastas aos posts
-                    posts.forEach(post => {
-                        post.pastas_associadas = [];
-                        
-                        const associacoes = postsPastas.filter(pp => pp.post_id === post.id);
-                        
-                        associacoes.forEach(associacao => {
-                            const pasta = pastas.find(p => p.id === associacao.pasta_id);
-                            if (pasta) {
-                                post.pastas_associadas.push({
-                                    pasta_id: pasta.id,
-                                    pastas: pasta
-                                });
-                            }
-                        });
-                    });
-                }
-                
-                // Buscar arquivos para cada post
-                for (let i = 0; i < posts.length; i++) {
-                    const post = posts[i];
-                    
-                    const responseArquivos = await fetch(`${supabaseUrl}/rest/v1/arquivos_post?codigo_post=eq.${post.codigo_post}&order=ordem`, {
-                        method: 'GET',
-                        headers: {
-                            'apikey': supabaseKey,
-                            'Authorization': `Bearer ${supabaseKey}`,
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    
-                    if (responseArquivos.ok) {
-                        post.arquivos = await responseArquivos.json();
-                    } else {
-                        post.arquivos = [];
-                    }
-                }
-                
-                exibirPosts(posts);
-                
-            } catch (error) {
-                console.error('Erro ao carregar posts:', error);
-                showToast('Erro ao carregar posts. Tente novamente.', 'error');
-                
-                postsContainer.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <h3>Erro ao carregar posts</h3>
-                        <p>Não foi possível carregar os posts. Tente novamente mais tarde.</p>
-                    </div>
-                `;
-            }
-        }
-        
-        // Download de arquivo individual - VERSÃO MELHORADA
-        async function baixarArquivo(nomeArquivo, nomeDisplay = null) {
-            try {
-                console.log(`Iniciando download: ${nomeArquivo}`);
-                
-                // 1. Gerar URL assinada (10 minutos de validade)
-                const params = {
-                    Bucket: 'levelave',
-                    Key: nomeArquivo,
-                    Expires: 600, // 10 minutos
-                    ResponseContentDisposition: `attachment; filename="${nomeDisplay || nomeArquivo}"`
-                };
-                
-                const url = await s3.getSignedUrlPromise('getObject', params);
-                console.log(`URL gerada para: ${nomeArquivo}`);
-                
-                // 2. Verificar se a URL foi gerada corretamente
-                if (!url || typeof url !== 'string') {
-                    throw new Error('URL assinada inválida');
-                }
-                
-                // 3. Criar elemento de download de forma mais robusta
-                return new Promise((resolve, reject) => {
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = nomeDisplay || nomeArquivo;
-                    link.style.display = 'none';
-                    link.target = '_blank'; // Abrir em nova aba como fallback
-                    
-                    // Adicionar ao DOM
-                    document.body.appendChild(link);
-                    
-                    // Simular clique
-                    try {
-                        link.click();
-                        console.log(`Download iniciado para: ${nomeArquivo}`);
-                        
-                        // Aguardar um pouco antes de remover o elemento
-                        setTimeout(() => {
-                            if (document.body.contains(link)) {
-                                document.body.removeChild(link);
-                            }
-                            
-                            // Registrar download no banco de dados
-                            if (currentPostDetail) {
-                                registrarDownload(
-                                    currentPostDetail.codigo_post, 
-                                    currentPostDetail.arquivos.find(a => a.arquivo_nome === nomeArquivo)?.id
-                                );
-                            }
-                            
-                            resolve(true);
-                        }, 1000);
-                        
-                    } catch (clickError) {
-                        console.error('Erro ao simular clique:', clickError);
-                        // Fallback: tentar abertura direta
-                        try {
-                            window.open(url, '_blank');
-                            resolve(true);
-                        } catch (openError) {
-                            console.error('Erro no fallback:', openError);
-                            reject(new Error('Falha ao iniciar download'));
-                        } finally {
-                            if (document.body.contains(link)) {
-                                document.body.removeChild(link);
-                            }
-                        }
-                    }
-                });
-                
-            } catch (error) {
-                console.error('Erro no download:', error);
-                showToast('Erro no download: ' + error.message, 'error');
-                return false;
-            }
-        }
-        
-        // Download de todos os arquivos - CORRIGIDO
-        async function baixarTodosArquivos(arquivos) {
-            try {
-                const totalArquivos = arquivos.length;
-                let arquivosBaixados = 0;
-                
-                console.log(`Iniciando download de ${totalArquivos} arquivos...`);
-                
-                // CORREÇÃO: Garantir que todos os arquivos sejam processados
-                for (let i = 0; i < totalArquivos; i++) {
-                    const arquivo = arquivos[i];
-                    console.log(`Baixando arquivo ${i + 1}/${totalArquivos}: ${arquivo.arquivo_nome}`);
-                    
-                    try {
-                        const sucesso = await baixarArquivo(arquivo.arquivo_nome, arquivo.arquivo_nome);
-                        
-                        if (sucesso) {
-                            arquivosBaixados++;
-                            console.log(`Arquivo ${i + 1} baixado com sucesso`);
-                        } else {
-                            console.error(`Falha no download do arquivo ${i + 1}`);
-                        }
-                    } catch (error) {
-                        console.error(`Erro no download do arquivo ${i + 1}:`, error);
-                    }
-                    
-                    // Delay entre downloads para evitar sobrecarga
-                    if (i < totalArquivos - 1) { // Não aplicar delay após o último arquivo
-                        await new Promise(resolve => setTimeout(resolve, 800));
-                    }
-                }
-                
-                console.log(`Download concluído: ${arquivosBaixados}/${totalArquivos} arquivos`);
-                
-                // Feedback final
-                if (arquivosBaixados === totalArquivos) {
-                    showToast(`✅ Todos os ${totalArquivos} arquivos foram baixados com sucesso!`, 'success');
-                } else if (arquivosBaixados > 0) {
-                    showToast(`⚠️ ${arquivosBaixados} de ${totalArquivos} arquivos baixados. Alguns falharam.`, 'error');
-                } else {
-                    showToast(`❌ Nenhum arquivo foi baixado. Verifique a conexão e tente novamente.`, 'error');
-                }
-            } catch (error) {
-                console.error('Erro geral ao baixar arquivos:', error);
-                showToast('Erro crítico ao baixar arquivos: ' + error.message, 'error');
-            }
-        }
-        
-        // Exibir posts na tela
-        function exibirPosts(postsParaExibir) {
-            if (postsParaExibir.length === 0) {
-                postsContainer.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-images"></i>
-                        <h3>Nenhum post encontrado</h3>
-                        <p>Não há posts para exibir com os filtros selecionados.</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            postsContainer.innerHTML = '';
-            
-            postsParaExibir.forEach(post => {
-                const postCard = criarPostCard(post);
-                postsContainer.appendChild(postCard);
-            });
-        }
-        
-        // FUNÇÃO PRINCIPAL: Criar card de post com carrossel implementado
-        function criarPostCard(post) {
-            const card = document.createElement('div');
-            card.className = 'post-card';
-            
-            // Criar container de mídia
-            const mediaContainer = document.createElement('div');
-            
-            // Verificar se é vídeo
-            if (post.tipo_arquivo === 'video' && post.arquivos && post.arquivos.length > 0) {
-                mediaContainer.className = 'post-image video';
-                
-                const playIcon = document.createElement('div');
-                playIcon.className = 'play-icon';
-                playIcon.innerHTML = '<i class="fas fa-play"></i>';
-                mediaContainer.appendChild(playIcon);
-                
-                mediaContainer.addEventListener('click', () => {
-                    abrirPostDetailModal(post);
-                });
-            } 
-            // IMPLEMENTAÇÃO DO CARROSSEL NO CARD
-            else if (post.arquivos && post.arquivos.length > 0) {
-                // Determinar se deve criar carrossel baseado no número de imagens
-                const isCarousel = post.eh_carrossel || post.arquivos.length > 1;
-                
-                if (isCarousel && post.arquivos.length > 1) {
-                    // CRIAR CARROSSEL COMPLETO
-                    mediaContainer.className = 'post-media-container';
-                    
-                    const carousel = document.createElement('div');
-                    carousel.className = 'post-carousel';
-                    
-                    const track = document.createElement('div');
-                    track.className = 'post-carousel-track';
-                    
-                    // Criar slides para cada imagem
-                    post.arquivos.forEach((arquivo, index) => {
-                        const slide = document.createElement('div');
-                        slide.className = 'post-carousel-slide';
-                        
-                        const img = document.createElement('img');
-                        img.className = 'loading-spinner';
-                        
-                        // Carregar imagem
-                        gerarUrlComPolitica(arquivo.arquivo_nome)
-                            .then(url => {
-                                img.src = url;
-                                img.alt = post.titulo;
-                                img.classList.remove('loading-spinner');
-                                
-                                img.addEventListener('click', () => {
-                                    abrirPostDetailModal(post);
-                                });
-                            })
-                            .catch(error => {
-                                console.error('Erro ao carregar imagem:', error);
-                                img.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
-                                img.classList.remove('loading-spinner');
-                            });
-                        
-                        slide.appendChild(img);
-                        track.appendChild(slide);
-                    });
-                    
-                    // Adicionar navegação
-                    const prevBtn = document.createElement('button');
-                    prevBtn.className = 'post-carousel-nav post-carousel-prev';
-                    prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
-                    
-                    const nextBtn = document.createElement('button');
-                    nextBtn.className = 'post-carousel-nav post-carousel-next';
-                    nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
-                    
-                    // Indicadores
-                    const indicators = document.createElement('div');
-                    indicators.className = 'post-carousel-indicators';
-                    
-                    post.arquivos.forEach((_, index) => {
-                        const dot = document.createElement('div');
-                        dot.className = 'post-carousel-dot' + (index === 0 ? ' active' : '');
-                        indicators.appendChild(dot);
-                    });
-                    
-                    // MINIATURAS PREVIEW - FUNCIONALIDADE PRINCIPAL SOLICITADA
-                    const thumbnailsPreview = document.createElement('div');
-                    thumbnailsPreview.className = 'post-thumbnails-preview';
-                    
-                    // Carregar miniaturas
-                    post.arquivos.forEach((arquivo, index) => {
-                        const thumbnail = document.createElement('img');
-                        thumbnail.className = 'post-thumbnail-mini' + (index === 0 ? ' active' : '');
-                        
-                        gerarUrlComPolitica(arquivo.arquivo_nome)
-                            .then(url => {
-                                thumbnail.src = url;
-                                thumbnail.alt = `Miniatura ${index + 1}`;
-                            })
-                            .catch(error => {
-                                console.error('Erro ao carregar miniatura:', error);
-                            });
-                        
-                        // Funcionalidade de navegação por miniatura
-                        thumbnail.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            navegarParaSlide(track, indicators, thumbnailsPreview, index);
-                        });
-                        
-                        thumbnailsPreview.appendChild(thumbnail);
-                    });
-                    
-                    // Funcionalidade das setas
-                    let currentSlide = 0;
-                    
-                    prevBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        if (currentSlide > 0) {
-                            currentSlide--;
-                            navegarParaSlide(track, indicators, thumbnailsPreview, currentSlide);
-                        }
-                    });
-                    
-                    nextBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        if (currentSlide < post.arquivos.length - 1) {
-                            currentSlide++;
-                            navegarParaSlide(track, indicators, thumbnailsPreview, currentSlide);
-                        }
-                    });
-                    
-                    // Funcionalidade dos indicadores
-                    indicators.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        const dots = indicators.querySelectorAll('.post-carousel-dot');
-                        const clickedIndex = Array.from(dots).indexOf(e.target);
-                        if (clickedIndex >= 0) {
-                            currentSlide = clickedIndex;
-                            navegarParaSlide(track, indicators, thumbnailsPreview, currentSlide);
-                        }
-                    });
-                    
-                    // Montar carrossel
-                    carousel.appendChild(track);
-                    carousel.appendChild(prevBtn);
-                    carousel.appendChild(nextBtn);
-                    carousel.appendChild(indicators);
-                    carousel.appendChild(thumbnailsPreview);
-                    
-                    mediaContainer.appendChild(carousel);
-                    
-                } else {
-                    // IMAGEM ÚNICA
-                    mediaContainer.className = 'post-image loading';
-                    
-                    const loadingSpinner = document.createElement('div');
-                    loadingSpinner.className = 'loading-spinner';
-                    mediaContainer.appendChild(loadingSpinner);
-                    
-                    gerarUrlComPolitica(post.arquivos[0].arquivo_nome)
-                        .then(url => {
-                            const img = document.createElement('img');
-                            img.src = url;
-                            img.alt = post.titulo;
-                            
-                            mediaContainer.removeChild(loadingSpinner);
-                            mediaContainer.appendChild(img);
-                            mediaContainer.classList.remove('loading');
-                            
-                            img.addEventListener('click', () => {
-                                abrirPostDetailModal(post);
-                            });
-                        })
-                        .catch(error => {
-                            console.error('Erro ao carregar imagem:', error);
-                            mediaContainer.removeChild(loadingSpinner);
-                            mediaContainer.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
-                            mediaContainer.classList.remove('loading');
-                        });
-                }
-            } else {
-                // SEM ARQUIVOS
-                mediaContainer.className = 'post-image';
-                mediaContainer.innerHTML = '<i class="fas fa-image"></i>';
-            }
-            
-            // Adicionar contador de imagens
-            if (post.arquivos && post.arquivos.length > 1) {
-                const imageCount = document.createElement('div');
-                imageCount.className = 'post-image-count';
-                imageCount.innerHTML = `<i class="fas fa-images"></i> ${post.arquivos.length}`;
-                mediaContainer.appendChild(imageCount);
-            }
-            
-            // Criar conteúdo do post
-            const content = document.createElement('div');
-            content.className = 'post-content';
-            
-            const title = document.createElement('h3');
-            title.className = 'post-title';
-            title.textContent = post.titulo;
-            
-            const description = document.createElement('p');
-            description.className = 'post-description';
-            description.textContent = post.descricao || '';
-            
-            const meta = document.createElement('div');
-            meta.className = 'post-meta';
-            
-            // Pasta principal
-            const pastaPrincipal = pastas.find(p => p.id === post.pasta_id);
-            const nomePastaPrincipal = pastaPrincipal ? pastaPrincipal.nome : 'Sem pasta';
-            
-            const pastaBadge = document.createElement('span');
-            pastaBadge.className = 'post-pasta';
-            pastaBadge.textContent = nomePastaPrincipal;
-            
-            const date = document.createElement('span');
-            date.textContent = formatarData(post.created_at);
-            
-            meta.appendChild(pastaBadge);
-            meta.appendChild(date);
-            
-            const actions = document.createElement('div');
-            actions.className = 'post-actions';
-            
-            const btnView = document.createElement('button');
-            btnView.className = 'btn-view';
-            btnView.innerHTML = '<i class="fas fa-eye"></i> Ver';
-            
-            btnView.addEventListener('click', () => {
-                abrirPostDetailModal(post);
-            });
-            
-            const btnDownload = document.createElement('button');
-            btnDownload.className = 'btn-download';
-            btnDownload.innerHTML = '<i class="fas fa-download"></i> Download';
-            
-            // Adicionar evento de clique para download - VERSÃO CORRIGIDA
-            btnDownload.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                if (post.arquivos && post.arquivos.length > 0) {
-                    // Debug: Log do número de arquivos
-                    console.log(`Post: ${post.titulo}`);
-                    console.log(`Total de arquivos detectados: ${post.arquivos.length}`);
-                    console.log(`É carrossel: ${post.eh_carrossel}`);
-                    
-                    if (post.eh_carrossel && post.arquivos.length > 1) {
-                        console.log('Iniciando download de carrossel...');
-                        await baixarTodosArquivos(post.arquivos);
-                    } else {
-                        console.log('Iniciando download de arquivo único...');
-                        await baixarArquivo(post.arquivos[0].arquivo_nome);
-                    }
-                } else {
-                    showToast('Nenhum arquivo encontrado para download.', 'error');
-                }
-            });
-            
-            actions.appendChild(btnView);
-            actions.appendChild(btnDownload);
-            
-            // Montar card
-            content.appendChild(title);
-            content.appendChild(description);
-            content.appendChild(meta);
-            content.appendChild(actions);
-            
-            card.appendChild(mediaContainer);
-            card.appendChild(content);
-            
-            return card;
-        }
-        
-        // Função para navegar entre slides do carrossel no card
-        function navegarParaSlide(track, indicators, thumbnailsPreview, index) {
-            // Mover track
-            track.style.transform = `translateX(-${index * 100}%)`;
-            
-            // Atualizar indicadores
-            const dots = indicators.querySelectorAll('.post-carousel-dot');
-            dots.forEach((dot, i) => {
-                if (i === index) {
-                    dot.classList.add('active');
-                } else {
-                    dot.classList.remove('active');
-                }
-            });
-            
-            // Atualizar miniaturas
-            const thumbnails = thumbnailsPreview.querySelectorAll('.post-thumbnail-mini');
-            thumbnails.forEach((thumb, i) => {
-                if (i === index) {
-                    thumb.classList.add('active');
-                } else {
-                    thumb.classList.remove('active');
-                }
-            });
-        }
-        
-        // Gerar URL com política de acesso temporário
-        async function gerarUrlComPolitica(arquivoNome, expiresInSeconds = 3600) {
-            const cacheKey = `${arquivoNome}_${expiresInSeconds}`;
-            const cachedUrl = signedUrlsCache.get(cacheKey);
-            
-            if (cachedUrl && new Date(cachedUrl.expiresAt) > new Date()) {
-                return cachedUrl.url;
-            }
-            
-            try {
-                const params = {
-                    Bucket: 'levelave',
-                    Key: arquivoNome,
-                    Expires: expiresInSeconds
-                };
-                
-                const url = await s3.getSignedUrlPromise('getObject', params);
-                
-                const expiresAt = new Date(Date.now() + (expiresInSeconds * 1000));
-                signedUrlsCache.set(cacheKey, { url, expiresAt });
-                
-                return url;
-            } catch (error) {
-                console.error('Erro ao gerar URL com política:', error);
-                throw error;
-            }
-        }
-        
-        // Abrir modal de detalhes do post - VERSÃO CORRIGIDA
-        async function abrirPostDetailModal(post) {
-            currentPostDetail = post;
-            currentPostDetailImageIndex = 0;
-            
-            postDetailLoading.style.display = 'block';
-            
-            // CORREÇÃO: Limpar apenas o conteúdo da mídia, mantendo os elementos de navegação
-            const existingImage = postDetailMedia.querySelector('img:not(.post-detail-thumbnail)');
-            const existingVideo = postDetailMedia.querySelector('video');
-            if (existingImage) existingImage.remove();
-            if (existingVideo) existingVideo.remove();
-            
-            // Garantir que os elementos de navegação existam
-            if (!postDetailMedia.querySelector('.post-detail-prev')) {
-                const prevBtn = document.createElement('button');
-                prevBtn.className = 'post-detail-nav post-detail-prev';
-                prevBtn.id = 'post-detail-prev';
-                prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
-                prevBtn.addEventListener('click', () => {
-                    if (currentPostDetail && currentPostDetail.arquivos && currentPostDetail.arquivos.length > 1) {
-                        if (currentPostDetailImageIndex > 0) {
-                            currentPostDetailImageIndex--;
-                            updatePostDetailImage();
-                        }
-                    }
-                });
-                postDetailMedia.appendChild(prevBtn);
-            }
-            
-            if (!postDetailMedia.querySelector('.post-detail-next')) {
-                const nextBtn = document.createElement('button');
-                nextBtn.className = 'post-detail-nav post-detail-next';
-                nextBtn.id = 'post-detail-next';
-                nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
-                nextBtn.addEventListener('click', () => {
-                    if (currentPostDetail && currentPostDetail.arquivos && currentPostDetail.arquivos.length > 1) {
-                        if (currentPostDetailImageIndex < currentPostDetail.arquivos.length - 1) {
-                            currentPostDetailImageIndex++;
-                            updatePostDetailImage();
-                        }
-                    }
-                });
-                postDetailMedia.appendChild(nextBtn);
-            }
-            
-            if (!postDetailMedia.querySelector('.post-detail-thumbnails')) {
-                const thumbnailsContainer = document.createElement('div');
-                thumbnailsContainer.className = 'post-detail-thumbnails';
-                thumbnailsContainer.id = 'post-detail-thumbnails';
-                postDetailMedia.appendChild(thumbnailsContainer);
-            }
-            
-            // Atualizar referências
-            const postDetailPrevUpdated = postDetailMedia.querySelector('.post-detail-prev');
-            const postDetailNextUpdated = postDetailMedia.querySelector('.post-detail-next');
-            const postDetailThumbnailsUpdated = postDetailMedia.querySelector('.post-detail-thumbnails');
-            
-            postDetailThumbnailsUpdated.innerHTML = '';
-            
-            try {
-                // Preencher informações
-                postDetailTitle.textContent = post.titulo;
-                postDetailDescription.textContent = post.descricao || '';
-                postDetailTipo.textContent = post.tipo_arquivo === 'video' ? 'Vídeo' : 'Imagem';
-                postDetailDate.textContent = formatarData(post.created_at);
-                
-                // Pastas
-                postDetailPastas.innerHTML = '';
-                if (post.pastas_associadas && post.pastas_associadas.length > 0) {
-                    post.pastas_associadas.forEach(associacao => {
-                        const pastaBadge = document.createElement('span');
-                        pastaBadge.className = 'post-detail-pasta';
-                        pastaBadge.textContent = associacao.pastas.nome;
-                        postDetailPastas.appendChild(pastaBadge);
-                    });
-                } else {
-                    postDetailPastas.textContent = 'Nenhuma pasta associada';
-                }
-                
-                // Tags
-                postDetailTags.innerHTML = '';
-                if (post.tags) {
-                    const tagsArray = post.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
-                    tagsArray.forEach(tag => {
-                        const tagElement = document.createElement('span');
-                        tagElement.className = 'post-detail-tag';
-                        tagElement.textContent = `#${tag}`;
-                        postDetailTags.appendChild(tagElement);
-                    });
-                } else {
-                    postDetailTags.textContent = 'Nenhuma tag';
-                }
-                
-                // Carregar mídia
-                if (post.tipo_arquivo === 'video' && post.arquivos && post.arquivos.length > 0) {
-                    const url = await gerarUrlComPolitica(post.arquivos[0].arquivo_nome);
-                    
-                    const video = document.createElement('video');
-                    video.src = url;
-                    video.controls = true;
-                    video.className = 'video-player';
-                    video.style.width = '100%';
-                    video.style.height = 'auto';
-                    video.style.maxHeight = '100%';
-                    video.style.zIndex = '1';
-                    
-                    video.onloadeddata = () => {
-                        postDetailLoading.style.display = 'none';
-                        // Inserir vídeo antes dos controles de navegação
-                        postDetailMedia.insertBefore(video, postDetailPrevUpdated);
-                    };
-                    
-                    video.onerror = () => {
-                        postDetailLoading.style.display = 'none';
-                        const errorElement = document.createElement('div');
-                        errorElement.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
-                        postDetailMedia.insertBefore(errorElement, postDetailPrevUpdated);
-                    };
-                    
-                    // Ocultar navegação para vídeos
-                    postDetailPrevUpdated.style.display = 'none';
-                    postDetailNextUpdated.style.display = 'none';
-                    postDetailThumbnailsUpdated.style.display = 'none';
-                    
-                } else if (post.arquivos && post.arquivos.length > 0) {
-                    // CORREÇÃO PRINCIPAL: Criar miniaturas SEMPRE
-                    console.log(`Criando miniaturas para ${post.arquivos.length} arquivos`);
-                    
-                    for (let i = 0; i < post.arquivos.length; i++) {
-                        const arquivo = post.arquivos[i];
-                        
-                        const thumbnail = document.createElement('img');
-                        thumbnail.className = 'post-detail-thumbnail';
-                        if (i === 0) thumbnail.classList.add('active');
-                        
-                        try {
-                            const url = await gerarUrlComPolitica(arquivo.arquivo_nome);
-                            thumbnail.src = url;
-                            thumbnail.alt = `Imagem ${i + 1}`;
-                            
-                            thumbnail.addEventListener('click', () => {
-                                currentPostDetailImageIndex = i;
-                                updatePostDetailImageWithElements(postDetailPrevUpdated, postDetailNextUpdated, postDetailThumbnailsUpdated);
-                            });
-                            
-                            postDetailThumbnailsUpdated.appendChild(thumbnail);
-                            console.log(`Miniatura ${i + 1} criada com sucesso`);
-                        } catch (error) {
-                            console.error('Erro ao carregar miniatura:', error);
-                        }
-                    }
-                    
-                    // CORREÇÃO: Mostrar navegação SEMPRE que houver múltiplas imagens
-                    if (post.arquivos.length > 1) {
-                        postDetailPrevUpdated.style.display = 'flex';
-                        postDetailNextUpdated.style.display = 'flex';
-                        postDetailThumbnailsUpdated.style.display = 'flex';
-                        console.log('Navegação habilitada para múltiplas imagens');
-                    } else {
-                        postDetailPrevUpdated.style.display = 'none';
-                        postDetailNextUpdated.style.display = 'none';
-                        postDetailThumbnailsUpdated.style.display = 'flex'; // Sempre mostrar miniaturas
-                        console.log('Navegação desabilitada para imagem única');
-                    }
-                    
-                    // Carregar primeira imagem
-                    updatePostDetailImageWithElements(postDetailPrevUpdated, postDetailNextUpdated, postDetailThumbnailsUpdated);
-                } else {
-                    postDetailLoading.style.display = 'none';
-                    const noImageElement = document.createElement('div');
-                    noImageElement.innerHTML = '<i class="fas fa-image"></i>';
-                    postDetailMedia.insertBefore(noImageElement, postDetailPrevUpdated);
-                    postDetailPrevUpdated.style.display = 'none';
-                    postDetailNextUpdated.style.display = 'none';
-                    postDetailThumbnailsUpdated.style.display = 'none';
-                }
-                
-                // Exibir modal
-                postDetailModal.classList.add('active');
-                
-            } catch (error) {
-                console.error('Erro ao abrir modal de detalhes do post:', error);
-                postDetailLoading.style.display = 'none';
-                showToast('Erro ao carregar detalhes do post. Tente novamente.', 'error');
-            }
-        }
-        
-        // Atualizar imagem no modal de detalhes - VERSÃO CORRIGIDA COM ELEMENTOS DINÂMICOS
-        function updatePostDetailImageWithElements(prevBtn, nextBtn, thumbnailsContainer) {
-            if (!currentPostDetail || !currentPostDetail.arquivos || currentPostDetail.arquivos.length === 0) return;
-            
-            postDetailLoading.style.display = 'block';
-            
-            // Remover imagem anterior
-            const existingImage = postDetailMedia.querySelector('img:not(.post-detail-thumbnail)');
-            if (existingImage) {
-                existingImage.remove();
-            }
-            
-            const arquivo = currentPostDetail.arquivos[currentPostDetailImageIndex];
-            
-            gerarUrlComPolitica(arquivo.arquivo_nome)
-                .then(url => {
-                    const img = document.createElement('img');
-                    img.src = url;
-                    img.alt = currentPostDetail.titulo;
-                    img.style.maxWidth = '100%';
-                    img.style.maxHeight = '100%';
-                    img.style.objectFit = 'contain';
-                    img.style.zIndex = '1';
-                    img.style.cursor = 'pointer';
-                    
-                    // Navegação por clique na imagem
-                    img.addEventListener('click', () => {
-                        if (currentPostDetail.arquivos.length > 1) {
-                            if (currentPostDetailImageIndex < currentPostDetail.arquivos.length - 1) {
-                                currentPostDetailImageIndex++;
-                                updatePostDetailImageWithElements(prevBtn, nextBtn, thumbnailsContainer);
-                            } else {
-                                currentPostDetailImageIndex = 0;
-                                updatePostDetailImageWithElements(prevBtn, nextBtn, thumbnailsContainer);
-                            }
-                        }
-                    });
-                    
-                    img.onload = () => {
-                        postDetailLoading.style.display = 'none';
-                        
-                        // Inserir imagem antes dos controles de navegação
-                        postDetailMedia.insertBefore(img, prevBtn);
-                        
-                        console.log(`Imagem ${currentPostDetailImageIndex + 1} carregada no modal`);
-                    };
-                    
-                    img.onerror = () => {
-                        postDetailLoading.style.display = 'none';
-                        const errorElement = document.createElement('div');
-                        errorElement.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
-                        postDetailMedia.insertBefore(errorElement, prevBtn);
-                    };
-                    
-                    // Atualizar miniaturas ativas
-                    const thumbnails = thumbnailsContainer.querySelectorAll('.post-detail-thumbnail');
-                    thumbnails.forEach((thumbnail, index) => {
-                        if (index === currentPostDetailImageIndex) {
-                            thumbnail.classList.add('active');
-                        } else {
-                            thumbnail.classList.remove('active');
-                        }
-                    });
-                    
-                    // Atualizar estado das setas
-                    if (currentPostDetail.arquivos.length > 1) {
-                        prevBtn.style.opacity = currentPostDetailImageIndex > 0 ? '1' : '0.5';
-                        nextBtn.style.opacity = currentPostDetailImageIndex < currentPostDetail.arquivos.length - 1 ? '1' : '0.5';
-                        
-                        console.log(`Navegação atualizada: ${currentPostDetailImageIndex + 1}/${currentPostDetail.arquivos.length}`);
-                    }
-                })
-                .catch(error => {
-                    console.error('Erro ao carregar imagem do detalhe:', error);
-                    postDetailLoading.style.display = 'none';
-                    showToast('Erro ao carregar imagem. Tente novamente.', 'error');
-                });
-        }
-        
-        // Manter função original para compatibilidade com eventos globais
-        async function updatePostDetailImage() {
-            const prevBtn = postDetailMedia.querySelector('.post-detail-prev');
-            const nextBtn = postDetailMedia.querySelector('.post-detail-next');
-            const thumbnailsContainer = postDetailMedia.querySelector('.post-detail-thumbnails');
-            
-            if (prevBtn && nextBtn && thumbnailsContainer) {
-                updatePostDetailImageWithElements(prevBtn, nextBtn, thumbnailsContainer);
-            } else {
-                console.error('Elementos de navegação não encontrados no modal');
-            }
-        }
-        
-        // Filtrar posts
-        function filtrarPosts() {
-            const pastaId = filterPasta.value;
-            const tipo = filterTipo.value;
-            const searchTerm = searchInput.value.toLowerCase().trim();
-            
-            let postsFiltrados = [...posts];
-            
-            // Filtrar por pasta
-            if (pastaId) {
-                postsFiltrados = postsFiltrados.filter(post => {
-                    return post.pastas_associadas.some(associacao => 
-                        associacao.pasta_id === pastaId
-                    ) || post.pasta_id === pastaId;
-                });
-            }
-            
-            // Filtrar por tipo
-            if (tipo) {
-                postsFiltrados = postsFiltrados.filter(post => post.tipo_arquivo === tipo);
-            }
-            
-            // Filtrar por termo de busca
-            if (searchTerm) {
-                postsFiltrados = postsFiltrados.filter(post => {
-                    const titulo = post.titulo.toLowerCase();
-                    const descricao = (post.descricao || '').toLowerCase();
-                    const tags = (post.tags || '').toLowerCase();
-                    
-                    return titulo.includes(searchTerm) || 
-                           descricao.includes(searchTerm) || 
-                           tags.includes(searchTerm);
-                });
-            }
-            
-            exibirPosts(postsFiltrados);
-        }
-        
-        // Registrar download
-        async function registrarDownload(codigoPost, arquivoId) {
-            try {
-                const downloadData = {
-                    codigo_post: codigoPost,
-                    arquivo_id: arquivoId,
-                    download_type: 'direct'
-                };
-                
-                const response = await fetch(`${supabaseUrl}/rest/v1/logs_downloads`, {
-                    method: 'POST',
-                    headers: {
-                        'apikey': supabaseKey,
-                        'Authorization': `Bearer ${supabaseKey}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(downloadData)
-                });
-                
-                if (!response.ok) {
-                    console.error('Erro ao registrar download:', response.status);
-                }
-            } catch (error) {
-                console.error('Erro ao registrar download:', error);
-            }
-        }
-        
-        // Formatar data
-        function formatarData(dataString) {
-            const data = new Date(dataString);
-            return data.toLocaleDateString('pt-BR');
-        }
-        
-        // Mostrar notificação toast
-        function showToast(message, type = 'success') {
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
-            
-            const icon = document.createElement('div');
-            icon.className = 'toast-icon';
-            icon.innerHTML = type === 'success' ? 
-                '<i class="fas fa-check-circle"></i>' : 
-                '<i class="fas fa-exclamation-circle"></i>';
-            
-            const messageElement = document.createElement('div');
-            messageElement.className = 'toast-message';
-            messageElement.textContent = message;
-            
-            const closeButton = document.createElement('button');
-            closeButton.className = 'toast-close';
-            closeButton.innerHTML = '<i class="fas fa-times"></i>';
-            closeButton.addEventListener('click', () => {
-                toast.remove();
-            });
-            
-            toast.appendChild(icon);
-            toast.appendChild(messageElement);
-            toast.appendChild(closeButton);
-            
-            toastContainer.appendChild(toast);
-            
-            // Auto-remover após 5 segundos
-            setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.remove();
-                }
-            }, 5000);
+            console.log('🔧 Modo DEBUG ativado. Use window.debug para funções de teste.');
         }
     </script>
 </body>
