@@ -474,6 +474,16 @@
             transform: translateY(-1px);
         }
         
+        .btn-download-all {
+            background-color: #495057;
+            color: white;
+        }
+        
+        .btn-download-all:hover {
+            background-color: #343a40;
+            transform: translateY(-1px);
+        }
+        
         /* Post Detail Modal */
         .post-detail-modal {
             display: none;
@@ -672,6 +682,15 @@
         
         .btn-detail-download:hover {
             background-color: #1666b8;
+        }
+        
+        .btn-detail-download-all {
+            background-color: #495057;
+            color: white;
+        }
+        
+        .btn-detail-download-all:hover {
+            background-color: #343a40;
         }
         
         .btn-detail-copy {
@@ -1067,7 +1086,10 @@
                     
                     <div class="post-detail-actions">
                         <button class="btn-detail-download" id="btn-detail-download">
-                            <i class="fas fa-download"></i> Download
+                            <i class="fas fa-download"></i> Baixar esta
+                        </button>
+                        <button class="btn-detail-download-all" id="btn-detail-download-all" style="display: none;">
+                            <i class="fas fa-layer-group"></i> Baixar todas
                         </button>
                         <button class="btn-detail-copy" id="btn-detail-copy">
                             <i class="fas fa-copy"></i> Copiar Descrição
@@ -1132,6 +1154,7 @@
         const postDetailNext = document.getElementById('post-detail-next');
         const postDetailThumbnails = document.getElementById('post-detail-thumbnails');
         const btnDetailDownload = document.getElementById('btn-detail-download');
+        const btnDetailDownloadAll = document.getElementById('btn-detail-download-all');
         const btnDetailCopy = document.getElementById('btn-detail-copy');
         
         const toastContainer = document.getElementById('toast-container');
@@ -1283,13 +1306,21 @@
             });
             
             // Botões do modal
+            // CORREÇÃO: baixa a imagem que está sendo exibida no modal
             btnDetailDownload.addEventListener('click', async () => {
                 if (currentPostDetail && currentPostDetail.arquivos && currentPostDetail.arquivos.length > 0) {
-                    if (currentPostDetail.eh_carrossel && currentPostDetail.arquivos.length > 1) {
-                        await baixarTodosArquivos(currentPostDetail.arquivos);
-                    } else {
-                        await baixarArquivo(currentPostDetail.arquivos[0].arquivo_nome);
-                    }
+                    const total = currentPostDetail.arquivos.length;
+                    const indice = Math.min(Math.max(currentPostDetailImageIndex, 0), total - 1);
+                    const arquivo = currentPostDetail.arquivos[indice];
+                    
+                    console.log(`Modal: baixando arquivo ${indice + 1}/${total}: ${arquivo.arquivo_nome}`);
+                    await baixarArquivo(arquivo.arquivo_nome, arquivo.arquivo_nome, currentPostDetail);
+                }
+            });
+            
+            btnDetailDownloadAll.addEventListener('click', async () => {
+                if (currentPostDetail && currentPostDetail.arquivos && currentPostDetail.arquivos.length > 1) {
+                    await baixarTodosArquivos(currentPostDetail.arquivos, currentPostDetail);
                 }
             });
             
@@ -1426,7 +1457,7 @@
         }
         
         // Download de arquivo individual - VERSÃO MELHORADA
-        async function baixarArquivo(nomeArquivo, nomeDisplay = null) {
+        async function baixarArquivo(nomeArquivo, nomeDisplay = null, post = null) {
             try {
                 console.log(`Iniciando download: ${nomeArquivo}`);
                 
@@ -1468,11 +1499,12 @@
                                 document.body.removeChild(link);
                             }
                             
-                            // Registrar download no banco de dados
-                            if (currentPostDetail) {
+                            // Registrar download no banco de dados (post da origem do clique)
+                            const postOrigem = post || currentPostDetail;
+                            if (postOrigem && postOrigem.arquivos) {
                                 registrarDownload(
-                                    currentPostDetail.codigo_post, 
-                                    currentPostDetail.arquivos.find(a => a.arquivo_nome === nomeArquivo)?.id
+                                    postOrigem.codigo_post, 
+                                    postOrigem.arquivos.find(a => a.arquivo_nome === nomeArquivo)?.id
                                 );
                             }
                             
@@ -1504,7 +1536,7 @@
         }
         
         // Download de todos os arquivos - CORRIGIDO
-        async function baixarTodosArquivos(arquivos) {
+        async function baixarTodosArquivos(arquivos, post = null) {
             try {
                 const totalArquivos = arquivos.length;
                 let arquivosBaixados = 0;
@@ -1517,7 +1549,7 @@
                     console.log(`Baixando arquivo ${i + 1}/${totalArquivos}: ${arquivo.arquivo_nome}`);
                     
                     try {
-                        const sucesso = await baixarArquivo(arquivo.arquivo_nome, arquivo.arquivo_nome);
+                        const sucesso = await baixarArquivo(arquivo.arquivo_nome, arquivo.arquivo_nome, post);
                         
                         if (sucesso) {
                             arquivosBaixados++;
@@ -1576,6 +1608,9 @@
         function criarPostCard(post) {
             const card = document.createElement('div');
             card.className = 'post-card';
+
+            // Indice do slide visivel no carrossel deste card (usado pelo download)
+            let slideAtual = 0;
             
             // Criar container de mídia
             const mediaContainer = document.createElement('div');
@@ -1677,28 +1712,27 @@
                         // Funcionalidade de navegação por miniatura
                         thumbnail.addEventListener('click', (e) => {
                             e.stopPropagation();
-                            navegarParaSlide(track, indicators, thumbnailsPreview, index);
+                            slideAtual = index;
+                            navegarParaSlide(track, indicators, thumbnailsPreview, slideAtual);
                         });
                         
                         thumbnailsPreview.appendChild(thumbnail);
                     });
                     
                     // Funcionalidade das setas
-                    let currentSlide = 0;
-                    
                     prevBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        if (currentSlide > 0) {
-                            currentSlide--;
-                            navegarParaSlide(track, indicators, thumbnailsPreview, currentSlide);
+                        if (slideAtual > 0) {
+                            slideAtual--;
+                            navegarParaSlide(track, indicators, thumbnailsPreview, slideAtual);
                         }
                     });
                     
                     nextBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        if (currentSlide < post.arquivos.length - 1) {
-                            currentSlide++;
-                            navegarParaSlide(track, indicators, thumbnailsPreview, currentSlide);
+                        if (slideAtual < post.arquivos.length - 1) {
+                            slideAtual++;
+                            navegarParaSlide(track, indicators, thumbnailsPreview, slideAtual);
                         }
                     });
                     
@@ -1708,8 +1742,8 @@
                         const dots = indicators.querySelectorAll('.post-carousel-dot');
                         const clickedIndex = Array.from(dots).indexOf(e.target);
                         if (clickedIndex >= 0) {
-                            currentSlide = clickedIndex;
-                            navegarParaSlide(track, indicators, thumbnailsPreview, currentSlide);
+                            slideAtual = clickedIndex;
+                            navegarParaSlide(track, indicators, thumbnailsPreview, slideAtual);
                         }
                     });
                     
@@ -1805,33 +1839,47 @@
                 abrirPostDetailModal(post);
             });
             
+            const totalArquivosPost = (post.arquivos && post.arquivos.length) || 0;
+            
             const btnDownload = document.createElement('button');
             btnDownload.className = 'btn-download';
-            btnDownload.innerHTML = '<i class="fas fa-download"></i> Download';
+            btnDownload.innerHTML = '<i class="fas fa-download"></i> Baixar';
             
-            // Adicionar evento de clique para download - VERSÃO CORRIGIDA
+            // CORREÇÃO: baixa o arquivo do slide que está visível, não sempre o primeiro
             btnDownload.addEventListener('click', async (e) => {
                 e.stopPropagation();
-                if (post.arquivos && post.arquivos.length > 0) {
-                    // Debug: Log do número de arquivos
-                    console.log(`Post: ${post.titulo}`);
-                    console.log(`Total de arquivos detectados: ${post.arquivos.length}`);
-                    console.log(`É carrossel: ${post.eh_carrossel}`);
-                    
-                    if (post.eh_carrossel && post.arquivos.length > 1) {
-                        console.log('Iniciando download de carrossel...');
-                        await baixarTodosArquivos(post.arquivos);
-                    } else {
-                        console.log('Iniciando download de arquivo único...');
-                        await baixarArquivo(post.arquivos[0].arquivo_nome);
-                    }
-                } else {
+                if (!totalArquivosPost) {
                     showToast('Nenhum arquivo encontrado para download.', 'error');
+                    return;
                 }
+                
+                // Proteção contra índice fora do intervalo
+                const indice = Math.min(Math.max(slideAtual, 0), totalArquivosPost - 1);
+                const arquivo = post.arquivos[indice];
+                
+                console.log(`Post: ${post.titulo}`);
+                console.log(`Baixando arquivo ${indice + 1}/${totalArquivosPost}: ${arquivo.arquivo_nome}`);
+                
+                await baixarArquivo(arquivo.arquivo_nome, arquivo.arquivo_nome, post);
             });
             
             actions.appendChild(btnView);
             actions.appendChild(btnDownload);
+            
+            // Botão extra para baixar o carrossel inteiro
+            if (totalArquivosPost > 1) {
+                const btnDownloadAll = document.createElement('button');
+                btnDownloadAll.className = 'btn-download-all';
+                btnDownloadAll.title = `Baixar as ${totalArquivosPost} imagens deste post`;
+                btnDownloadAll.innerHTML = `<i class="fas fa-layer-group"></i> Todas (${totalArquivosPost})`;
+                
+                btnDownloadAll.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    await baixarTodosArquivos(post.arquivos, post);
+                });
+                
+                actions.appendChild(btnDownloadAll);
+            }
             
             // Montar card
             content.appendChild(title);
@@ -1903,6 +1951,13 @@
         async function abrirPostDetailModal(post) {
             currentPostDetail = post;
             currentPostDetailImageIndex = 0;
+            
+            // Botão "baixar todas" só faz sentido com mais de um arquivo
+            const totalArquivosDetalhe = (post.arquivos && post.arquivos.length) || 0;
+            if (btnDetailDownloadAll) {
+                btnDetailDownloadAll.style.display = totalArquivosDetalhe > 1 ? 'flex' : 'none';
+                btnDetailDownloadAll.innerHTML = `<i class="fas fa-layer-group"></i> Baixar todas (${totalArquivosDetalhe})`;
+            }
             
             postDetailLoading.style.display = 'block';
             
