@@ -527,7 +527,7 @@
                 // 1. Verificar se o usuário existe na nossa tabela perfis_usuarios
                 const { data: userProfile, error: profileError } = await supabase
                     .from('perfis_usuarios')
-                    .select('id, nome, email, tipo_usuario, ativo, senha_hash')
+                    .select('id, nome, email, tipo_usuario, ativo')
                     .eq('email', email)
                     .eq('ativo', true)
                     .single();
